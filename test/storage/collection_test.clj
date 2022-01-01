@@ -43,7 +43,7 @@
 (deftest fetch-existing-item
   "When fetching an existing item"
   (let [id "1"
-        item {:id id :name "Test"}
+        item {:id id :title "Test"}
         storage (make-storage {(keyword id) item})
         item-fetched (-fetch storage id)]
     (is (= item item-fetched) "Should return the item with the same id on the storage")))
@@ -54,3 +54,20 @@
         storage (make-storage)
         item-fetched (-fetch storage id)]
     (is (nil? item-fetched) "Should return nil")))
+
+(defn create-items [title]
+  [(keyword title) {:id title :title title}])
+
+(deftest get-all-with-no-items
+  "When getting all items on a collection with no items"
+  (let [storage (make-storage)
+        all-items (-get-all storage)]
+    (is (empty? all-items) "Should return an empty collection")))
+
+(deftest get-all-with-existing-items
+  "When getting all items on a collection with items"
+  (let [titles (map str (range 100))
+        items (apply hash-map (apply concat (mapv create-items titles)))
+        storage (make-storage items)
+        all-items (-get-all storage)]
+    (is (= (vals items) all-items) "Should return all items")))
