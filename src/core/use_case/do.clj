@@ -8,6 +8,11 @@
 (defn create-output [todo]
   (action/create :todo/do todo))
 
-(defn execute [input output]
-
-  (output (create-output todo)))
+(defn execute [input output storage]
+  (let [id (:id input)
+        existing (todo/fetch storage id)
+        updated (update existing :done (constantly true))]
+    (->> updated
+         (todo/save storage)
+         (create-output)
+         (output))))

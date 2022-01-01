@@ -1,4 +1,4 @@
-(ns core.use-case.create-todo
+(ns core.use-case.create
   (:require [core.entity.todo :as todo]
             [core.action :as action]))
 

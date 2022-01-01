@@ -1,16 +1,22 @@
 (ns storage.collection
+  (:use clojure.pprint)
   (:require [core.entity.todo :as todo]))
 
 (defn- save [*todos todo]
-  (swap! *todos conj todo)
+  (swap! *todos assoc (keyword (:id todo)) todo)
   todo)
 
-(defrecord CollectionStorage [*coll]
+(defn- fetch [*todos id]
+  (get @*todos (keyword id)))
+
+(defrecord CollectionStorage [*coll])
+(extend-type CollectionStorage
   todo/TodoStorage
-  (-save [_ todo] (save *coll todo)))
+  (-save [this todo] (save (:*coll this) todo))
+  (-fetch [this todo-id] (fetch (:*coll this) todo-id)))
 
 (defn make-storage
-  ([coll]
-   (->CollectionStorage (atom (set coll))))
+  ([map]
+   (->CollectionStorage (atom map)))
   ([]
-   (make-storage #{})))
+   (make-storage {})))
