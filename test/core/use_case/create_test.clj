@@ -2,8 +2,7 @@
   (:require [clojure.test :refer :all]
             [core.use-case.create :as create]
             [core.action :as action]
-            [storage.collection :refer [make-storage]])
-  (:use clojure.pprint))
+            [storage.collection :refer [make-storage]]))
 
 (deftest create
   "When creating a todo"

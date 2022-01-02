@@ -1,5 +1,4 @@
 (ns storage.collection
-  (:use clojure.pprint)
   (:require [core.entity.todo :as todo]))
 
 (defn- save [*todos todo]

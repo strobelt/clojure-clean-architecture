@@ -1,5 +1,4 @@
 (ns storage.collection-test
-  (:use clojure.pprint)
   (:require [clojure.test :refer :all]
             [storage.collection :refer :all]
             [core.entity.todo :refer :all]))

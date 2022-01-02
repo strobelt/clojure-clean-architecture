@@ -1,5 +1,4 @@
 (ns core.use-case.do-test
-  (:use clojure.pprint)
   (:require [clojure.test :refer :all]
             [core.entity.todo :as todo]
             [storage.collection :refer [make-storage]]

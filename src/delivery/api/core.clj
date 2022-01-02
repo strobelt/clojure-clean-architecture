@@ -1,5 +1,4 @@
 (ns delivery.api.core
-  (:use clojure.pprint)
   (:require [clojure.data.json :as json]
             [io.pedestal.http :as http]
             [io.pedestal.http.route :as route]
@@ -28,14 +27,7 @@
   {:name  ::todo-get-all
    :enter (fn [context]
             (let [storage (make-storage {:1 {:id 1 :title "Test"}})
-                  output  (fn [action]
-                            (println "\n\nCONTEXT INSIDE ACTION")
-                            (pprint (get-in context [:request :headers "accept"]))
-                            (pprint (assoc context :response (ok action)))
-                            (assoc context :response (ok action)))]
-              (println "\n\nCONTEXT")
-              (pprint (get-in context [:request :headers "accept"]))
-              (println "\n\n")
+                  output  (fn [action] (assoc context :response (ok action)))]
               (get-all/execute output storage)))})
 
 (def routes
