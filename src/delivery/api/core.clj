@@ -2,8 +2,8 @@
   (:require [clojure.data.json :as json]
             [io.pedestal.http :as http]
             [io.pedestal.http.route :as route]
-            [core.use-case.get-all :as get-all]
-            [core.action :as action]
+            [core.use-case.get-all :as get-all-todos]
+            [core.use-case.create :as create-todo]
             [storage.collection :refer [make-storage]]
             [delivery.api.coerce-body-interceptor :refer [coerce-body]]
             ))
@@ -16,6 +16,8 @@
 (def accepted (partial response 202))
 (def not-found (partial response 400))
 
+(defonce storage (make-storage))
+
 (def echo
   {:name  ::echo
    :enter (fn [context]
@@ -26,14 +28,21 @@
 (def todo-get-all
   {:name  ::todo-get-all
    :enter (fn [context]
-            (let [storage (make-storage {:1 {:id 1 :title "Test"}})
-                  output  (fn [action] (assoc context :response (ok action)))]
-              (get-all/execute output storage)))})
+            (let [output  (fn [action] (assoc context :response (ok action)))]
+              (get-all-todos/execute output storage)))})
+
+(def todo-create
+  {:name  ::todo-create
+   :enter (fn [context]
+            (let [title  (get-in context [:request :params :title])
+                  input  (create-todo/create-input title)
+                  output (fn [action] (assoc context :response (created action)))]
+              (create-todo/execute input output storage)))})
 
 (def routes
   (route/expand-routes
     #{["/todo" :get [coerce-body todo-get-all]]
-      ["/todo" :post echo :route-name :todo-create]
+      ["/todo" :post [coerce-body todo-create]]
       ["/todo/do/:todo-id" :post echo :route-name :todo-do]
       ["/todo/undo/:todo-id" :post echo :route-name :todo-undo]}))
 
@@ -62,7 +71,8 @@
 
 (restart)
 
-;(defn -main []
-;  (start))
+(defn -main []
+  (start))
 
 ;(route/try-routing-for routes :prefix-tree "/todo" :get)
+;(route/try-routing-for routes :prefix-tree "/xablau" :get)

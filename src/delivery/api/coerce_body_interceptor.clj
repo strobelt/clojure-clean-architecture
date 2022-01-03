@@ -3,10 +3,12 @@
 
 (defn accepted-type
   [context]
+  (println "\n\nCABECAS" (get-in context [:request :headers]))
   (get-in context [:request :headers "accept"] "text/plain"))
 
 (defn transform-content [body content-type]
   (case content-type
+    "*/*" body
     "text/html" body
     "text/plain" body
     "application/edn" (pr-str body)
