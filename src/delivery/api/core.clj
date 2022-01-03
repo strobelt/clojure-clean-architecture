@@ -4,6 +4,8 @@
             [io.pedestal.http.route :as route]
             [core.use-case.get-all :as get-all-todos]
             [core.use-case.create :as create-todo]
+            [core.use-case.do :as do-todo]
+            [core.use-case.undo :as undo-todo]
             [storage.collection :refer [make-storage]]
             [delivery.api.coerce-body-interceptor :refer [coerce-body]]
             ))
@@ -13,8 +15,6 @@
 
 (def ok (partial response 200))
 (def created (partial response 201))
-(def accepted (partial response 202))
-(def not-found (partial response 400))
 
 (defonce storage (make-storage))
 
@@ -28,7 +28,7 @@
 (def todo-get-all
   {:name  ::todo-get-all
    :enter (fn [context]
-            (let [output  (fn [action] (assoc context :response (ok action)))]
+            (let [output (fn [action] (assoc context :response (ok action)))]
               (get-all-todos/execute output storage)))})
 
 (def todo-create
@@ -39,12 +39,28 @@
                   output (fn [action] (assoc context :response (created action)))]
               (create-todo/execute input output storage)))})
 
+(def todo-do
+  {:name  ::todo-do
+   :enter (fn [context]
+            (let [id    (get-in context [:request :path-params :todo-id])
+                  input (do-todo/create-input id)
+                  output (fn [action] (assoc context :response (ok action)))]
+              (do-todo/execute input output storage)))})
+
+(def todo-undo
+  {:name  ::todo-undo
+   :enter (fn [context]
+            (let [id    (get-in context [:request :path-params :todo-id])
+                  input (do-todo/create-input id)
+                  output (fn [action] (assoc context :response (ok action)))]
+              (undo-todo/execute input output storage)))})
+
 (def routes
   (route/expand-routes
     #{["/todo" :get [coerce-body todo-get-all]]
       ["/todo" :post [coerce-body todo-create]]
-      ["/todo/do/:todo-id" :post echo :route-name :todo-do]
-      ["/todo/undo/:todo-id" :post echo :route-name :todo-undo]}))
+      ["/todo/do/:todo-id" :post todo-do]
+      ["/todo/undo/:todo-id" :post todo-undo]}))
 
 (def service-map
   {::http/routes routes
@@ -73,6 +89,3 @@
 
 (defn -main []
   (start))
-
-;(route/try-routing-for routes :prefix-tree "/todo" :get)
-;(route/try-routing-for routes :prefix-tree "/xablau" :get)
