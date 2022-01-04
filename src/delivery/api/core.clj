@@ -1,14 +1,12 @@
 (ns delivery.api.core
-  (:require [clojure.data.json :as json]
-            [io.pedestal.http :as http]
+  (:require [io.pedestal.http :as http]
             [io.pedestal.http.route :as route]
             [core.use-case.get-all :as get-all-todos]
             [core.use-case.create :as create-todo]
             [core.use-case.do :as do-todo]
             [core.use-case.undo :as undo-todo]
             [storage.collection :refer [make-storage]]
-            [delivery.api.coerce-body-interceptor :refer [coerce-body]]
-            ))
+            [delivery.api.coerce-body-interceptor :refer [coerce-body]]))
 
 (defn response [status body & {:as headers}]
   {:status status :body body :headers headers})
@@ -16,19 +14,12 @@
 (def ok (partial response 200))
 (def created (partial response 201))
 
-(defonce storage (make-storage))
-
-(def echo
-  {:name  ::echo
-   :enter (fn [context]
-            (let [request  (:request context)
-                  response (ok request)]
-              (assoc context :response response)))})
+(def storage (make-storage))
 
 (def todo-get-all
   {:name  ::todo-get-all
    :enter (fn [context]
-            (let [output (fn [action] (assoc context :response (ok action)))]
+            (let [output (fn [action] (assoc context :response (ok (:core.action/data action))))]
               (get-all-todos/execute output storage)))})
 
 (def todo-create
@@ -36,15 +27,15 @@
    :enter (fn [context]
             (let [title  (get-in context [:request :params :title])
                   input  (create-todo/create-input title)
-                  output (fn [action] (assoc context :response (created action)))]
+                  output (fn [action] (assoc context :response (created (:core.action/data action))))]
               (create-todo/execute input output storage)))})
 
 (def todo-do
   {:name  ::todo-do
    :enter (fn [context]
-            (let [id    (get-in context [:request :path-params :todo-id])
-                  input (do-todo/create-input id)
-                  output (fn [action] (assoc context :response (ok action)))]
+            (let [id     (get-in context [:request :path-params :todo-id])
+                  input  (do-todo/create-input id)
+                  output (fn [action] (assoc context :response (ok (:core.action/data action))))]
               (do-todo/execute input output storage)))})
 
 (def todo-undo
@@ -52,7 +43,7 @@
    :enter (fn [context]
             (let [id    (get-in context [:request :path-params :todo-id])
                   input (do-todo/create-input id)
-                  output (fn [action] (assoc context :response (ok action)))]
+                  output (fn [action] (assoc context :response (ok (:core.action/data action))))]
               (undo-todo/execute input output storage)))})
 
 (def routes
@@ -85,7 +76,7 @@
   (stop-dev)
   (start-dev))
 
-(restart)
+;(restart)
 
 (defn -main []
   (start))
